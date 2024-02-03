@@ -3,6 +3,7 @@ import { APIerrorHandler } from "../utils/APIerrorHandler.js";
 import { APIresponseHandler } from "../utils/APIresponseHandler.js";
 
 import { Post } from "../models/post.models.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 
 // Get all post list
@@ -10,7 +11,6 @@ const getAllPosts = asyncHandler(
     async(req, res) => {
         try {
             const allPosts = await Post.find();
-    
             return res.status(200)
                 .json(
                     new APIresponseHandler(
@@ -37,9 +37,20 @@ const addPost = asyncHandler(
                 throw new APIerrorHandler(400, "Title and Content fields are required to post.")
             }
 
+            const imageLocalPath = req.files?.image[0]?.path;
+            if (!imageLocalPath) {
+                throw new APIerrorHandler(400, "Image not found")
+            }
+
+            const postImage = await uploadOnCloudinary(imageLocalPath);
+            if (!postImage) {
+                throw new APIerrorHandler(400, "Image is required to post")
+            }
+            
             const createdPost = await Post.create({
                 title, 
-                content
+                content,
+                imagePath: postImage?.url || ""
             });
 
             if (!createdPost) {
