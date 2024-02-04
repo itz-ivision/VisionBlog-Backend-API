@@ -24,7 +24,7 @@ const getAllPosts = asyncHandler(
         }
 
     }
-)
+);
 
 // Create a single post
 const addPost = asyncHandler(
@@ -41,7 +41,7 @@ const addPost = asyncHandler(
             if (!imageLocalPath) {
                 throw new APIerrorHandler(400, "Image not found")
             }
-
+ 
             const postImage = await uploadOnCloudinary(imageLocalPath);
             if (!postImage) {
                 throw new APIerrorHandler(400, "Image is required to post")
@@ -70,7 +70,7 @@ const addPost = asyncHandler(
             throw new APIerrorHandler(400, error.message)
         }
     }
-)
+);
 
 // Get a post by ID
 const getPostByID = asyncHandler(
