@@ -10,6 +10,16 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 const getAllPosts = asyncHandler(
     async(req, res) => {
         try {
+            const pageSize = +req.query.pagesize;
+            const currentPage = +req.query.page;
+            const postQuery = Post.find();
+
+            if (pageSize && currentPage) {
+                postQuery
+                    .skip(pageSize * (currentPage - 1))
+                    .limit(pageSize);
+            }
+
             const allPosts = await Post.find();
             return res.status(200)
                 .json(
@@ -107,6 +117,7 @@ const getPostByID = asyncHandler(
 const updatePost = asyncHandler(
     async(req, res) => {
         try {
+            console.log(req.file);
             const { postId } = req.params
             const { title, content } = req.body
     
@@ -118,12 +129,23 @@ const updatePost = asyncHandler(
                 throw new APIerrorHandler(400, "Title and Content fields are required to post.");
             }
     
+            const imageLocalPath = req.file?.image[0]?.path;
+            if (!imageLocalPath) {
+                throw new APIerrorHandler(400, "Image not found")
+            }
+ 
+            const postImage = await uploadOnCloudinary(imageLocalPath);
+            if (!postImage) {
+                throw new APIerrorHandler(400, "Image is required to post")
+            }
+
             const updatedPost = await Post.findByIdAndUpdate(
                 postId,
                 {
                     $set: {
-                        title,
-                        content
+                        title, 
+                        content,
+                        imagePath: postImage?.url || ""
                     }
                 },
                 {new: true}

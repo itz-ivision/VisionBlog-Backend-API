@@ -18,7 +18,14 @@ router.route("/")
     
 router.route("/:postId")
     .get(getPostByID)
-    .put(updatePost)
+    .put(
+        upload.fields([
+            {
+                name: 'image',
+                maxCount: 1
+            },
+        ]),
+        updatePost)
     .delete(deletePost);
 
 
