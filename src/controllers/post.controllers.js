@@ -13,6 +13,7 @@ const getAllPosts = asyncHandler(
             const pageSize = +req.query.pagesize;
             const currentPage = +req.query.page;
             const postQuery = Post.find();
+            let fetchedPosts;
 
             if (pageSize && currentPage) {
                 postQuery
@@ -20,15 +21,23 @@ const getAllPosts = asyncHandler(
                     .limit(pageSize);
             }
 
-            const allPosts = await Post.find();
-            return res.status(200)
-                .json(
-                    new APIresponseHandler(
-                        200,
-                        allPosts,
-                        "All Posts fetched successfully.."
-                    )
-                )
+            await postQuery.then(
+                (documents) => {
+                    fetchedPosts = documents;
+                    return Post.countDocuments();
+                }).then(
+                    count => {
+                        return res.status(200)
+                                        .json(
+                                            {
+                                                posts: fetchedPosts,
+                                                postCounts: count,
+                                                message: "All Posts fetched successfully.."
+                                            }
+                                        )
+                    }
+                );
+            
         } catch (error) {
             throw new APIerrorHandler(400, error.message);
         }
